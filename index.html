@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ドローン操縦士 資格試験 クイズ</title>
+
+<!-- ===== PWA ===== -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ドローンクイズ">
+<meta name="theme-color" content="#00d4ff">
+<link rel="apple-touch-icon" href="icon-192.png">
+<!-- =============== -->
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #0a0e1a;
+    --sky-mid: #0d1a2e;
+    --accent: #00d4ff;
+    --accent2: #00ff88;
+    --warn: #ff6b35;
+    --text: #e8f4f8;
+    --text-dim: #7a9ab0;
+    --card: rgba(255,255,255,0.04);
+    --card-border: rgba(0,212,255,0.15);
+    --correct: #00ff88;
+    --incorrect: #ff4757;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--sky);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(0,212,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 20%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 60%, rgba(0,212,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 10%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 85%, rgba(0,255,136,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 90%, rgba(0,212,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 55%, rgba(255,255,255,0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Gradient orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -20%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb2 {
+    position: fixed;
+    bottom: -15%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0,255,136,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    text-align: center;
+    padding: 40px 0 30px;
+  }
+
+  .drone-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 0 20px rgba(0,212,255,0.6));
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  h1 {
+    font-size: clamp(22px, 5vw, 32px);
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ===== START SCREEN ===== */
+  #startScreen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 0 60px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover {
+    border-color: rgba(0,212,255,0.4);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    letter-spacing: 1px;
+  }
+
+  .section-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .section-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    letter-spacing: 0.5px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #0077ff);
+    color: #000;
+    box-shadow: 0 0 30px rgba(0,212,255,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 40px rgba(0,212,255,0.5);
+  }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(0,212,255,0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+
+  .btn-outline:hover {
+    background: rgba(0,212,255,0.1);
+  }
+
+  .mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* ===== QUIZ SCREEN ===== */
+  #quizScreen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .progress-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .q-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    white-space: nowrap;
+    min-width: 70px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .score-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .category-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2px;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px;
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-text {
+    font-size: clamp(15px, 2.5vw, 18px);
+    font-weight: 500;
+    line-height: 1.7;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.6;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: rgba(0,212,255,0.08);
+    border-color: rgba(0,212,255,0.3);
+    transform: translateX(3px);
+  }
+
+  .option-btn:disabled {
+    cursor: default;
+  }
+
+  .option-letter {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    min-width: 20px;
+    padding-top: 2px;
+    transition: color 0.2s;
+  }
+
+  .option-btn.correct {
+    background: rgba(0,255,136,0.12);
+    border-color: var(--correct);
+    color: var(--correct);
+  }
+
+  .option-btn.correct .option-letter { color: var(--correct); }
+
+  .option-btn.incorrect {
+    background: rgba(255,71,87,0.12);
+    border-color: var(--incorrect);
+    color: var(--incorrect);
+  }
+
+  .option-btn.incorrect .option-letter { color: var(--incorrect); }
+
+  .option-btn.correct-missed {
+    background: rgba(0,255,136,0.06);
+    border-color: rgba(0,255,136,0.4);
+    color: rgba(0,255,136,0.7);
+  }
+
+  /* Explanation */
+  .explanation {
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: rgba(0,212,255,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .explanation strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .result-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .result-indicator.ok { color: var(--correct); }
+  .result-indicator.ng { color: var(--incorrect); }
+
+  .nav-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 40px;
+  }
+
+  /* ===== RESULT SCREEN ===== */
+  #resultScreen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    gap: 32px;
+  }
+
+  .result-circle {
+    position: relative;
+    width: 180px;
+    height: 180px;
+  }
+
+  .result-circle svg {
+    transform: rotate(-90deg);
+  }
+
+  .result-circle-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 10;
+  }
+
+  .result-circle-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 502;
+    stroke-dashoffset: 502;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .result-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .result-pct {
+    font-family: 'Space Mono', monospace;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .result-pct-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .result-grade {
+    text-align: center;
+  }
+
+  .grade-text {
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .grade-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .r-stat {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+  }
+
+  .r-stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .r-stat-num.green { color: var(--correct); }
+  .r-stat-num.red { color: var(--incorrect); }
+  .r-stat-num.blue { color: var(--accent); }
+
+  .r-stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* ===== REVIEW SCREEN ===== */
+  #reviewScreen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 40px;
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+  }
+
+  .review-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .review-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid;
+  }
+
+  .review-card.wrong { border-left-color: var(--incorrect); }
+  .review-card.right { border-left-color: var(--correct); }
+
+  .review-q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .review-q-text {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .review-answers {
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  .review-your-answer { color: var(--incorrect); }
+  .review-correct-answer { color: var(--correct); }
+  .review-explanation {
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(0,212,255,0.05);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 3px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(13,26,46,0.95);
+    border: 1px solid var(--card-border);
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 13px;
+    color: var(--text);
+    backdrop-filter: blur(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 100;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== BEST SCORES GRID ===== */
+  .best-scores-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .best-score-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .best-score-card:hover {
+    border-color: rgba(0,212,255,0.3);
+    background: rgba(255,255,255,0.06);
+  }
+
+  .best-score-card.has-score {
+    border-color: rgba(0,212,255,0.25);
+  }
+
+  .best-score-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .best-score-val.no-data {
+    font-size: 18px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .best-score-mode {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    line-height: 1.3;
+  }
+
+  .best-score-attempts {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    color: rgba(255,255,255,0.2);
+    margin-top: 3px;
+  }
+
+  /* ===== HISTORY SCREEN ===== */
+  #historyScreen {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    gap: 16px;
+    padding-bottom: 40px;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0 4px;
+  }
+
+  .history-title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .history-empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 60px 20px;
+    font-size: 14px;
+    line-height: 2;
+  }
+
+  .history-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .history-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(0,212,255,0.3);
+    transform: translateX(3px);
+  }
+
+  .history-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .history-date {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .history-pct {
+    font-family: 'Space Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .history-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .history-meta span {
+    background: rgba(255,255,255,0.05);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .history-wrong-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .wrong-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: rgba(255,71,87,0.15);
+    border: 1px solid rgba(255,71,87,0.3);
+    color: var(--incorrect);
+  }
+
+  .wrong-pill.more {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    color: var(--text-dim);
+  }
+
+  /* Weak questions panel */
+  .weak-panel {
+    background: rgba(255,107,53,0.08);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  .weak-panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--warn);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .weak-panel-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+
+  .weak-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .weak-pill-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(255,107,53,0.15);
+    border: 1px solid rgba(255,107,53,0.3);
+    color: var(--warn);
+  }
+
+  /* Per-question accuracy tracker */
+  .accuracy-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+
+  .accuracy-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  .history-detail-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .history-detail-box {
+    background: #0d1a2e;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .history-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+
+  .history-detail-title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .btn-close {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: var(--text);
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn-close:hover { background: rgba(255,255,255,0.15); }
+
+  .detail-q-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .detail-q-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .detail-q-item.wrong-item {
+    background: rgba(255,71,87,0.08);
+    border: 1px solid rgba(255,71,87,0.2);
+  }
+
+  .detail-q-item.right-item {
+    background: rgba(0,255,136,0.05);
+    border: 1px solid rgba(0,255,136,0.15);
+  }
+
+  .detail-q-icon { font-size: 14px; flex-shrink: 0; }
+
+  .tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-dim);
+    background: transparent;
+  }
+
+  .tab-btn.active {
+    background: rgba(0,212,255,0.15);
+    color: var(--accent);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 480px) {
+    .mode-buttons { grid-template-columns: 1fr; }
+    .result-stats { grid-template-columns: repeat(3, 1fr); }
+    .question-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="orb2"></div>
+<div id="app">
+  <header>
+    <span class="drone-icon">🚁</span>
+    <h1>ドローン操縦士 資格試験</h1>
+    <p class="subtitle">DRONE PILOT LICENSE QUIZ</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="startScreen">
+    <!-- top row: total attempts -->
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px">
+      <div class="stat-card">
+        <div class="stat-num">100</div>
+        <div class="stat-label">総問題数</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer" onclick="showHistory()">
+        <div class="stat-num" id="attemptCount">0</div>
+        <div class="stat-label">挑戦回数 →</div>
+      </div>
+    </div>
+
+    <!-- best scores per mode -->
+    <div style="margin-bottom:20px">
+      <div class="section-label" style="margin-bottom:10px">🏆 モード別 最高スコア</div>
+      <div class="best-scores-grid" id="bestScoresGrid"></div>
+    </div>
+
+    <!-- Weak questions panel (shown when data exists) -->
+    <div class="weak-panel" id="weakPanel" style="display:none">
+      <div class="weak-panel-title">🔥 苦手問題</div>
+      <div class="weak-panel-sub" id="weakPanelSub"></div>
+      <div class="weak-pills" id="weakPills"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="startQuiz('weak')">💪 苦手問題を集中練習</button>
+    </div>
+
+    <div class="section-buttons">
+      <div class="section-label">🎯 出題範囲を選択</div>
+      <div class="mode-buttons">
+        <button class="btn btn-primary" onclick="startQuiz('all')">📚 全問題 (100問)</button>
+        <button class="btn btn-secondary" onclick="startQuiz('rand')">🎲 ランダム 20問</button>
+      </div>
+      <div class="mode-buttons">
+        <button class="btn btn-secondary" onclick="startQuiz('cat1')">第一編<br><small>航空法と制度の基礎</small></button>
+        <button class="btn btn-secondary" onclick="startQuiz('cat2')">第二編<br><small>運行ルールと安全管理</small></button>
+      </div>
+      <div class="mode-buttons">
+        <button class="btn btn-secondary" onclick="startQuiz('cat3')">第三編<br><small>機体・電波・センサー</small></button>
+        <button class="btn btn-secondary" onclick="startQuiz('cat4')">第四編<br><small>飛行運用・気象・リスク</small></button>
+      </div>
+      <button class="btn btn-outline" style="width:100%;margin-top:4px" onclick="showHistory()">📅 挑戦履歴を見る</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen">
+    <div class="progress-area">
+      <div class="q-counter" id="qCounter">Q1 / 10</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="score-badge" id="scoreBadge">✓ 0</div>
+    </div>
+    <div class="question-card" id="questionCard">
+      <div class="category-tag" id="categoryTag"></div>
+      <div class="question-text" id="questionText"></div>
+      <div class="options" id="optionsContainer"></div>
+      <div class="explanation" id="explanationBox" style="display:none"></div>
+    </div>
+    <div class="nav-area">
+      <button class="btn btn-outline" onclick="exitQuiz()">← 終了</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none">次の問題 →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="resultScreen">
+    <div class="result-circle">
+      <svg width="180" height="180" viewBox="0 0 180 180">
+        <circle class="result-circle-bg" cx="90" cy="90" r="80"/>
+        <circle class="result-circle-fill" id="resultCircle" cx="90" cy="90" r="80"/>
+      </svg>
+      <div class="result-center">
+        <div class="result-pct" id="resultPct">0%</div>
+        <div class="result-pct-label">正解率</div>
+      </div>
+    </div>
+    <div class="result-grade">
+      <div class="grade-text" id="gradeText"></div>
+      <div class="grade-sub" id="gradeSub"></div>
+    </div>
+    <div class="result-stats">
+      <div class="r-stat">
+        <div class="r-stat-num green" id="resCorrect">0</div>
+        <div class="r-stat-label">正解</div>
+      </div>
+      <div class="r-stat">
+        <div class="r-stat-num red" id="resIncorrect">0</div>
+        <div class="r-stat-label">不正解</div>
+      </div>
+      <div class="r-stat">
+        <div class="r-stat-num blue" id="resTotal">0</div>
+        <div class="r-stat-label">問題数</div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-secondary" onclick="showReview()">📋 解説を確認する</button>
+      <button class="btn btn-primary" onclick="restartQuiz()">🔄 もう一度挑戦</button>
+      <button class="btn btn-outline" onclick="goHome()">🏠 ホームに戻る</button>
+    </div>
+  </div>
+
+  <!-- REVIEW SCREEN -->
+  <div id="reviewScreen">
+    <div class="review-header">
+      <div class="review-title">📋 解説一覧</div>
+      <button class="btn btn-outline" onclick="showResult()">← 結果に戻る</button>
+    </div>
+    <div id="reviewContent"></div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div id="historyScreen">
+    <div class="history-header">
+      <div class="history-title">📅 挑戦履歴</div>
+      <button class="btn btn-outline" onclick="goHome()">← ホームへ</button>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchHistoryTab('list', this)">履歴一覧</button>
+      <button class="tab-btn" onclick="switchHistoryTab('weak', this)">苦手分析</button>
+    </div>
+
+    <div id="historyTabList" class="tab-content active">
+      <div id="historyList"></div>
+    </div>
+
+    <div id="historyTabWeak" class="tab-content">
+      <div id="weakAnalysis"></div>
+    </div>
+  </div>
+</div>
+
+<!-- History Detail Modal -->
+<div id="historyDetailModal" class="history-detail-modal" style="display:none" onclick="closeModal(event)">
+  <div class="history-detail-box">
+    <div class="history-detail-header">
+      <div class="history-detail-title" id="modalTitle"></div>
+      <button class="btn-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div id="modalContent"></div>
+    <button class="btn btn-primary" style="width:100%" id="modalRetryBtn">この回の間違いを復習する</button>
+  </div>
+</div>
+
+<!-- PWA インストールバナー -->
+<div id="installBanner" style="
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(135deg, #0d1a2e, #0a1628);
+  border-top: 1px solid rgba(0,212,255,0.3);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 999;
+  transform: translateY(120px);
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  backdrop-filter: blur(20px);
+">
+  <span style="font-size:28px;flex-shrink:0">🚁</span>
+  <div style="flex:1;min-width:0">
+    <div style="font-size:13px;font-weight:700;color:#e8f4f8;margin-bottom:2px">ホーム画面に追加</div>
+    <div style="font-size:11px;color:#7a9ab0">オフラインでも使えるアプリとして保存できます</div>
+  </div>
+  <button id="installBtn" style="
+    background: linear-gradient(135deg,#00d4ff,#0077ff);
+    border: none; border-radius: 8px;
+    color: #000; font-weight:700; font-size:13px;
+    padding: 8px 16px; cursor:pointer; white-space:nowrap;
+    font-family:'Noto Sans JP',sans-serif;
+  ">追加する</button>
+  <button id="installDismiss" style="
+    background:transparent; border:none;
+    color:#7a9ab0; font-size:20px; cursor:pointer;
+    padding:4px 8px; flex-shrink:0;
+  ">✕</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const QUESTIONS = [
+  // 第一編
+  { id:1, cat:"第一編", q:"事故を起した時に操縦者が負う責任に関する説明として正しいものを1つ選びなさい", opts:["刑事責任を負うことはあるが民事責任が生じることはない","損害賠償責任を負うことがある","刑事責任には技能証明の取り消しが含まれる"], ans:1, exp:"操縦者の責任には、懲役や罰金などの刑事責任、損害賠償を行う民事責任、そして免許の取り消し等を行う行政処分の3つがあります。技能証明の取り消しは刑事責任ではなく行政処分に該当します。" },
+  { id:2, cat:"第一編", q:"特定飛行においてドローン基盤情報システムへの飛行計画の通報に関する説明として誤っているものを1つ選びなさい", opts:["あらかじめ通報が困難であった場合は事後になって通報する必要はない","通報の内容には飛行の目的や高度及び速度も含まれる","飛行計画は間違いなく安全であると判断される場合も立てなければならない"], ans:0, exp:"特定飛行を行う際は、事前に飛行計画を通報する義務があります。やむを得ず事後になる場合でも、必ず事後通報を行わなければなりません。" },
+  { id:3, cat:"第一編", q:"飛行日誌を構成する記録文書に関する説明として正しいものを1つ選びなさい", opts:["飛行記録、日常点検記録、点検整備記録","飛行記録、整備点検記録、機体保全記録","飛行記録、日常点検記録、飛行前動作確認記録"], ans:0, exp:"飛行日誌は、飛行記録、日常点検記録、点検整備記録の3つの文書で構成されます。名称を正確に覚えましょう。" },
+  { id:4, cat:"第一編", q:"保険に関する説明として誤っているものを1つ選びなさい", opts:["賠償責任保険には必ず加入しておかなければならない","賠償責任保険は必ず加入しなければならないとは定められていない","賠償責任保険にはいろいろな種類や組み合わせがある"], ans:0, exp:"現状、航空法で賠償責任保険への加入は義務付けられていませんが、国は強く加入を推奨しています。" },
+  { id:5, cat:"第一編", q:"航空法が対象とする無人航空機の説明として正しいものを1つ選びなさい", opts:["構造上人が乗ることができない","遠隔操作や自動操縦が可能であるかとは無関係","重量に関わらず無人で飛行する航空機"], ans:0, exp:"航空法第2条において、無人航空機は「構造上人が乗ることができないもの」と定義されています。重量は100g以上が対象です。" },
+  { id:6, cat:"第一編", q:"航空法でいう航空機についての説明として正しいものを1つ選びなさい", opts:["無人航空機は航空機の中の1つの種類である","人が乗れる飛行機は航空機である","地上から遠隔操縦するラジコン飛行機は航空機の一種である"], ans:1, exp:"航空法における「航空機」は原則として人が乗れるものを指し、無人航空機と対比されます。ラジコン飛行機は航空法上の「航空機」には含まれません。" },
+  { id:7, cat:"第一編", q:"無人航空機の国の登録に関する説明として正しいものを1つ選びなさい", opts:["登録の有効期間は3年である","機体重量が100gの機体も登録だけは必要である","型式認証を受けている機体については登録の必要はない"], ans:0, exp:"無人航空機（100g以上）の登録の有効期間は3年です。型式認証の有無に関わらず、すべての対象機体は登録が必要です。" },
+  { id:8, cat:"第一編", q:"航空法において無人航空機の飛行において確保すべき安全に関する説明のうち正しいものを1つ選びなさい", opts:["人と物件の安全は水上においても確保されなければならない","物件の安全の確保はそれが脅かされることによる人の不安全の防止が目的","安全確保のために具体的には飛行区域と操縦者の技能証明の有無によって決まる特定飛行を規制している"], ans:0, exp:"安全確保の対象は地上だけでなく水上も含みます。特定飛行に該当するかどうかは「空域」と「方法」で決まり、技能証明の有無は無関係です。" },
+  { id:9, cat:"第一編", q:"特定飛行に関する説明として誤っているものを1つ選びなさい", opts:["規制は飛行の空域と飛行の距離である","規制は飛行の空域と飛行の方法である","人口集中地区とは国勢調査の結果を受けて設定されている"], ans:0, exp:"特定飛行を構成する規制対象は「空域」と「方法」です。飛行距離は特定飛行の定義には含まれません。" },
+  { id:10, cat:"第一編", q:"特定飛行として原則として飛行が禁止されている空域に関する説明として正しいものを1つ選びなさい", opts:["海抜150m以上の高さの空域","離陸地点からの150m以上の高さの空域","地表または水面から150m以上の高さの空域"], ans:2, exp:"高度の基準は、常に現に飛行している場所の地表または水面からの高さです。海抜や離陸地点基準ではありません。" },
+  { id:11, cat:"第一編", q:"規制対象（特定飛行）となる飛行の方法に関する説明として正しいものを1つ選びなさい", opts:["夜間飛行の夜間とは太陽が見え始めてから沈み終わるまで以外の時間帯である","機体が目視できる範囲にある場合は操縦装置の画面を見ながら操縦し続けても目視には当たらない","第三者との距離が30m未満で飛行することは規制の対象である"], ans:2, exp:"第三者や物件から30m未満の飛行は特定飛行の対象です。夜間とは国立天文台が発表する日の出から日の入りまで以外の時間を指します。" },
+  { id:12, cat:"第一編", q:"飛行形態の分類に関する説明として正しいものを1つ選びなさい", opts:["カテゴリーに関わらず事前に国土交通省への飛行通報は必要である","カテゴリー2飛行のうち催し場所上空の飛行はカテゴリー2B飛行である","カテゴリー3飛行は第三者上空において立入管理措置を講じないで行うものである"], ans:2, exp:"カテゴリー1は特定飛行ではないため通報不要です。空港周辺、150m以上、催し場所、危険物輸送などはカテゴリー2Aです。" },
+  { id:13, cat:"第一編", q:"カテゴリー2飛行の説明として正しいものを1つ選びなさい", opts:["カテゴリー2は立入管理措置を講じないで行うものである","特定飛行のうち立入管理措置を講じて行うものである","特定飛行のうち機体認証を受けていない機体で飛行を行うものである"], ans:1, exp:"カテゴリー2飛行は、特定飛行のうち立入管理措置（第三者の立ち入りを制限する措置）を講じて行う飛行を指します。" },
+  { id:14, cat:"第一編", q:"カテゴリー2飛行の説明として正しいものを1つ選びなさい", opts:["機体認証と技能証明のいずれも有していない場合は許可承認されない","機体認証を有している機体を飛行させる場合は国土交通大臣の許可承認がなくてもカテゴリー2A飛行することができる","カテゴリー2B飛行については技能証明を受けた操縦者が機体認証を有する無人航空機を飛行させる場合には特段の手続きなく飛行可能である"], ans:2, exp:"カテゴリー2B（DID、夜間、目視外、30m以内）では、技能証明と機体認証の両方があれば手続きを簡略化できます。カテゴリー2Aは必ず個別の許可承認が必要です。" },
+  { id:15, cat:"第一編", q:"機体認証に関する説明として正しいものを1つ選びなさい", opts:["第一種機体認証の有効期間は3年、第二種機体認証の有効期間は1年である","第一種機体認証の有効期間は2年、第二種機体認証の有効期間は3年である","第一種機体認証の有効期間は1年、第二種機体認証の有効期間は3年である"], ans:2, exp:"カテゴリー3飛行に必要な第一種は1年、カテゴリー2飛行に関連する第二種は3年が有効期間です。" },
+  { id:16, cat:"第一編", q:"無人航空機と航空機との関係の説明として正しいものを1つ選びなさい", opts:["航空機は最新技術の装備を持っており無人航空機が近接すれば直ちに認識回避できる","無人航空機は航空機と比較して一般的には機動性が高いと考えられる","ドローン基盤情報システムによる飛行計画の通報により航空機の飛行に留意する必要はなくなる"], ans:1, exp:"無人航空機の方が機動性が高く回避しやすいため、航空機に対して回避する義務があります。" },
+  { id:17, cat:"第一編", q:"航空機の飛行方式についての説明として正しいものを1つ選びなさい", opts:["計器飛行方式は計器を使用することで航空管制機関の指示なく飛行する方式である","有視界飛行方式ができない気象状況では計器飛行方式で飛行する","空港周辺であっても有視界飛行方式が可能な場合は航空交通管制機関の指示に従う必要はない"], ans:1, exp:"計器飛行方式は、気象に関わらず常に航空交通管制機関の指示に従う必要があります。空港周辺では有視界飛行でも指示に従う義務があります。" },
+  { id:18, cat:"第一編", q:"見張り義務に関する説明として正しいものを1つ選びなさい", opts:["航空機の操縦者は見張り義務を負っている","無人航空機の飛行において補助者がいる場合は飛行中の航空機に注意を払う責任は補助者が負っている","航空機の操縦者による見張りは視界の良さとは無関係に義務である"], ans:0, exp:"無人航空機の場合も、補助者がいても航空機への注意義務は操縦者本人にあります。視界が確保できない環境では見張り義務を果たせません。" },
+  { id:19, cat:"第一編", q:"管制区域に関する説明として正しいものを1つ選びなさい", opts:["管制区域は空港の所在地となる都道府県が設定している","管制区域以外の区域を非管制区域という","航空交通管制区は地表または水面から150m以上の高さの空域のうち自治体指定の区域である"], ans:1, exp:"管制区域は国（国土交通大臣）が指定します。管制区域以外の区域を非管制区域と呼びます。" },
+  { id:20, cat:"第一編", q:"空港の制限表面に関する説明として誤っているものを1つ選びなさい", opts:["進入表面、水平表面、転移表面は全ての空港に設定されている","円錐表面とは航空機の空港周辺での離陸空間を確保するために必要な表面である","外側水平表面は航空機が最終直線進入を行うまでの経路の安全を確保するための表面である"], ans:1, exp:"円錐表面の目的は、航空機の空港周辺における旋回方向の安全を確保することです。離陸空間そのものではありません。" },
+  { id:21, cat:"第一編", q:"重量100g未満の模型航空機に関する説明として正しいものを1つ選びなさい", opts:["小型無人機等飛行禁止法の対象であってその行為は航空法の対象ではない","飛行させる場合国土交通省への事前の届け出が必要な場合がある","100g未満なので航空機の飛行に影響を及ぼすことはない"], ans:1, exp:"100g未満であっても、管制区域等で航空機の飛行に影響を及ぼす恐れがある場合は、航空法に基づき事前の届け出が必要です。" },
+  { id:22, cat:"第一編", q:"無人航空機の登録に関する説明として誤っているものを1つ選びなさい", opts:["何らかの改造が行われた無人航空機は登録を受けることができない","遠隔操作または自動操縦による飛行の制御が著しく困難な無人航空機は登録を受けることができない","あらかじめ国土交通大臣が登録できないものと指定した無人航空機は登録を受けることができない"], ans:0, exp:"安全確保のための改造などは認められており、改造したからといって直ちに登録不可にはなりません。" },
+  { id:23, cat:"第一編", q:"無人航空機の登録記号の表示についての説明として正しいものを1つ選びなさい", opts:["最大離陸重量25kg未満の機体は3mm以上の文字で表示する","最大離陸重量25kg未満の機体は5mm以上の文字で表示する","最大離陸重量25kg以上の機体は20mm以上の文字で表示する"], ans:0, exp:"登録記号の表示サイズは、25kg未満は3mm以上、25kg以上は25mm以上と定められています。" },
+  { id:24, cat:"第一編", q:"リモートID機能についての説明として誤っているものを1つ選びなさい", opts:["2022年6月19日までの事前登録期間中に登録手続きを行った無人航空機は免除される","機体紛失を防止するための信号発信機能である","十分な強度を有する紐などにより条件を満たした係留をして行う場合はリモートID機能がなくても飛行できる"], ans:1, exp:"リモートIDは機体を探すためのものではなく、機体番号や位置、速度、高度、時刻などの情報を外部から確認できるようにするための機能です。" },
+  { id:25, cat:"第一編", q:"緊急用務区域に関する説明として正しいものを1つ選びなさい", opts:["国土交通省が緊急用務を行う航空機が飛行する空域を指定する","重量100g未満の模型航空機は飛行禁止の対象外である","事前に飛行計画を通報していれば緊急用務区域か否かを問わず飛行は可能である"], ans:0, exp:"緊急用務区域では、100g未満の模型航空機も規制対象となります。既存の許可承認や飛行計画があっても、原則として飛行は禁止されます。" },
+  // 第二編
+  { id:26, cat:"第二編", q:"リモートIDによって発信される情報に関する説明として正しいものを1つ選びなさい", opts:["無人航空機の製造番号及び登録番号が含まれる","無人航空機の所有者に関する情報が含まれる","5秒に1回以上発信される"], ans:0, exp:"所有者名などの個人情報は含まれません。発信されるデータは製造番号、登録番号、位置、速度、高度、時刻です。発信頻度は1秒に1回以上です。" },
+  { id:27, cat:"第二編", q:"夜間飛行に関する説明として正しいものを1つ選びなさい", opts:["山の中に日が落ちるなど操縦者から太陽が見えない状態となったら夜間である","昼間の時間帯でも定められた明るさよりも暗い状態は夜間とみなされる","日中とは国立天文台が発表する日の出から日の入りまでを意味するので明るさとは無関係である"], ans:2, exp:"個人の主観や周囲の明るさではなく、国立天文台が発表する時刻が厳密な基準です。" },
+  { id:28, cat:"第二編", q:"目視外飛行に関する説明として正しいものを1つ選びなさい", opts:["双眼鏡などで機体を十分に確認できる状態は目視に含まれる","メガネやコンタクトレンズの使用は目視に含まれる","補助者による目視は目視に含まれる"], ans:1, exp:"「目視」とは操縦者が自分の肉眼で見ることです。双眼鏡やモニター越し、補助者による監視は目視外扱いとなります。矯正器具の使用は認められています。" },
+  { id:29, cat:"第二編", q:"航空法が対象とする危険物に関する説明として誤っているものを1つ選びなさい", opts:["無人航空機の安全装置としてのパラシュート開傘のための火薬類は危険物に該当する","業務用機器としてのカメラに内蔵される電池は危険物とは見なされない","高圧ガスを輸送することは危険物の輸送に該当する"], ans:0, exp:"機体自体の作動に必要なバッテリーや火薬類は「危険物の輸送」には該当しません。" },
+  { id:30, cat:"第二編", q:"物件投下に関する説明として正しいものを1つ選びなさい", opts:["無人航空機を使用して物件を置く行為も物件投下に該当する","農薬などの液体の散布は物件投下には該当しない","水の散布も物件投下に該当する"], ans:2, exp:"物質の性質（固体・液体）や無害・有害に関わらず、空中から放つ行為はすべて物件投下です。置く行為は投下ではありません。" },
+  { id:31, cat:"第二編", q:"催し場所に関する説明として誤っているものを1つ選びなさい", opts:["出勤時間帯になって多くの通行人が通行している道路は催し場所である","デモの上空は催し場所である","町内会の盆踊り大会は催し場所である"], ans:0, exp:"催し場所とは、祭礼、縁日、展示会など特定の目的で多数の者が集まる場所を指します。通勤・通学などの自然発生的な混雑は該当しません。" },
+  { id:32, cat:"第二編", q:"特定飛行の例外についての説明として正しいものを1つ選びなさい", opts:["140mの高層マンションの屋上から高さ20mは地上から160mとなるという理由により飛行は禁止されている","長さ30m以下の十分な強度の紐で係留し立入管理措置を講じれば人口集中地区であっても事前承認手続きは不要である","災害発生時の緊急要件の場合は独自判断で規制を気にせずに飛行を行うべき"], ans:1, exp:"30m以下の紐による係留かつ立入管理措置がある場合、DID飛行や夜間、目視外などの一部手続きが不要となります。" },
+  { id:33, cat:"第二編", q:"第三者の定義の説明として正しいものを1つ選びなさい", opts:["飛行目的について共通の認識を持つ者であっても補助を行う者は第三者である","飛行に関与を自ら決定できる者は操縦者の認識に関わらず第三者ではない","目視外飛行の補助者は操縦者の視界に入らない場所にいても第三者ではない"], ans:2, exp:"飛行に関与し、操縦者がその役割を認識している補助者などは第三者ではありません。" },
+  { id:34, cat:"第二編", q:"間接関与者に関する説明のうち正しいものを1つ選びなさい", opts:["飛行目的の全部または一部に関与するか自ら決定できる者は間接関与者である","間接関与者であるためには、操縦者がその人物を「関与している」と判断していることが条件となる","無人航空機が計画外の挙動を示した場合に従うべき指示を受ける必要はない"], ans:1, exp:"操縦者が関与を認識・判断していることが大前提です。" },
+  { id:35, cat:"第二編", q:"立入管理措置に関する説明として正しいものを1つ選びなさい", opts:["立入管理措置においては第三者の立入を制限する区画を設定する","立入管理措置においては必ずロープで人の立入りを止めなければならない","補助者による監視や口頭警告は立入管理措置とは認められない"], ans:0, exp:"手段は限定されておらず、補助者による監視や警告も有効な措置として認められます。" },
+  { id:36, cat:"第二編", q:"無人航空機の操縦者が遵守すべき運行ルールに関する説明のうち正しいものを1つ選びなさい", opts:["飛行が禁止されるアルコールとは呼気中濃度が0.15mg/Lの場合である","飛行が禁止される薬物とは具体的には麻薬と覚醒剤を意味している","体内の濃度によらず体内にアルコールがある状態で飛行を行ってはならない"], ans:2, exp:"自動車の基準（0.15mg/L）とは異なり、航空法では数値に関わらず少量でもアルコールが残っていれば飛行禁止です（ゼロ・トレランス）。" },
+  { id:37, cat:"第二編", q:"航空法が規制の対象とする第三者または第三者の物件に関する説明として正しいものを1つ選びなさい", opts:["人が乗車している自動車は第三者物件である","人が内部にいない大型の倉庫は第三者物件ではない","住居自体は第三者物件ではない"], ans:0, exp:"物件には、中に人がいることが想定されるものや、工作物（建築物、車両など）が含まれます。" },
+  { id:38, cat:"第二編", q:"事故の定義の説明として誤っているものを1つ選びなさい", opts:["飛行中に無人航空機が人と接触し手にすり傷を負わせた場合は事故に該当","飛行中に無人航空機が民家のガラス窓に衝突しガラスが破損した場合は事故に該当","飛行中に無人航空機が河原の石の上に墜落し機体が破損しても事故には該当しない"], ans:0, exp:"「手にすり傷」程度の軽微な負傷は、事故ではなく重大インシデントに分類されます。物件の破損（ガラス等）は「事故」です。" },
+  { id:39, cat:"第二編", q:"重大インシデントの定義の説明として正しいものを1つ選びなさい", opts:["バッテリーが自宅で保管中に発火した場合は重大インシデントである","飛行中の無人航空機が発火した場合は重大インシデントだが事故ではない","航空機との接触の恐れが認められたが回避した場合は重大インシデントではない"], ans:1, exp:"飛行中の発火や航空機との接近（ニアミス）は重大インシデントに該当します。保管中の発火は対象外です。" },
+  { id:40, cat:"第二編", q:"事故や重大なインシデントにおける説明のうち正しいものを1つ選びなさい", opts:["重大なインシデントの場合は人の負傷がない限り報告義務はない","事故が発生した場合は国土交通大臣への報告が必要である","事故が発生した場合は国土交通大臣に加え総務大臣への報告が義務である"], ans:1, exp:"事故・重大インシデントともに、速やかに国土交通大臣へ報告する義務があります。" },
+  { id:41, cat:"第二編", q:"航空機または他の無人航空機との衝突防止として正しいものを1つ選びなさい", opts:["飛行計画を通報すれば他の無人機がその空域で飛行することはない","飛行中に他機を確認した場合は後から離陸した機体が着陸しなければならない","飛行前に航行中の航空機を確認した場合は飛行を行うべきではない"], ans:2, exp:"航空機が優先です。航空機を確認した、あるいは接近の恐れがある場合は、直ちに飛行を中止または回避する必要があります。" },
+  { id:42, cat:"第二編", q:"国土交通大臣への飛行計画の通報について誤っているものを1つ選びなさい", opts:["通報時に記載した機体が故障した場合、同型機なら事前通報なく代替できる","通報した飛行計画に従って特定飛行をしなければならない","システム障害により事前の通報が不可能な場合は事後の通報でも可能である"], ans:0, exp:"機体は1台ごとに固有の登録記号で管理されているため、同型機であっても別の機体を飛ばす際は改めて通報が必要です。" },
+  { id:43, cat:"第二編", q:"特定飛行を行う場合の飛行日誌についての説明として正しいものを1つ選びなさい", opts:["飛行日誌は電子データでも構わない","飛行後に記録するものであるから、飛行の際に携行する必要はない","特定飛行に該当しない場合も飛行日誌は必ず携行しなければならない"], ans:0, exp:"特定飛行時には飛行日誌の備え付け（携行）が義務ですが、電子データ（スマホ等）での管理も認められます。" },
+  { id:44, cat:"第二編", q:"航空法令の規定に違反した場合の罰則に関する説明として正しいものを1つ選びなさい", opts:["登録を受けていない機体を飛行させた場合は1年以下の懲役または50万円以下の罰金となる","飛行計画を通報せずに特定飛行を行った場合は5万円以下の罰金となる","事故の発生を報告しなかった場合は50万円以下の罰金となる"], ans:0, exp:"未登録機の飛行は非常に重い罰則があります。通報なしの特定飛行や事故報告の未実施は30万円以下の罰金です。" },
+  { id:45, cat:"第二編", q:"カテゴリー2飛行に関する説明として正しいものを1つ選びなさい", opts:["カテゴリー2B飛行は技能証明を受けた操縦者が登録を行った機体を飛行させる場合は手続きなく可能である","カテゴリー2A飛行はあらかじめ国土交通大臣の審査を受け飛行の許可承認を受ける必要がある","カテゴリー2B飛行は技能証明を受けた操縦者であれば手続きなく可能である"], ans:1, exp:"カテゴリー2Bが手続き不要になる条件は、技能証明と「機体認証」の両方がある場合です。" },
+  { id:46, cat:"第二編", q:"カテゴリー3飛行を行う場合の運行管理体制に関する説明として正しいものを1つ選びなさい", opts:["一等無人航空機操縦士資格が求められる","第一種機体認証または第二種機体認証が必要である","運行管理の方法について大臣の確認までは求められない"], ans:0, exp:"カテゴリー3には、一等資格と第一種機体認証が必須です。また、運行管理方法についても事前承認が必要です。" },
+  { id:47, cat:"第二編", q:"技能証明の申請資格要件に関する説明として誤っているものを1つ選びなさい", opts:["取り消された日から2年以内の者は申請できない","16歳以下の者は申請できない","拒否された日から1年以内の者は申請できない"], ans:1, exp:"正しくは「16歳未満」が申請不可です。16歳になれば申請可能です。" },
+  { id:48, cat:"第二編", q:"技能証明の交付手続きに関する説明として正しいものを1つ選びなさい", opts:["合格すべき試験は学科試験、実地試験、身体検査である","登録講習機関に書類を出せば身体検査を免除できる","有効期間は一等において1年間、二等において3年間である"], ans:0, exp:"身体検査は自動車免許証等での代替は可能ですが、「免除」ではありません。有効期間は一等・二等ともに3年です。" },
+  { id:49, cat:"第二編", q:"無人航空機の登録制度に関する説明として誤っているものを1つ選びなさい", opts:["重量が200g以上の無人航空機が対象である","制御が著しく困難な機体は登録を受けることができない","目的の1つは事故発生時における所有者の把握である"], ans:0, exp:"重量の基準は100g以上です。" },
+  { id:50, cat:"第二編", q:"小型無人機等飛行禁止法についての説明として正しいものを1つ選びなさい", opts:["航空法の中で特に100g未満の機体に関する法令である","重要施設の周囲およそ30mの空域における飛行を禁止するものである","国会議事堂などの重要施設に対する危険を未然に防止することを目的としている"], ans:2, exp:"航空法とは別の法律で、重量に関わらず適用されます。重要施設の敷地（レッドゾーン）とその周囲約300m（イエローゾーン）が規制対象です。" },
+  // 第三編
+  { id:51, cat:"第三編", q:"飛行機の特徴についての説明として正しいものを1つ選びなさい", opts:["回転翼航空機と同様にホバリングが可能である","回転翼航空機と比べ高速、長期間、長距離飛行が可能である","上昇角度に関わらず失速することはない"], ans:1, exp:"飛行機は固定翼で揚力を得るため効率的ですが、過度な上昇角度（迎え角）をとると失速する恐れがあります。" },
+  { id:52, cat:"第三編", q:"最大離陸重量が25kg以上のヘリコプターについての説明として誤っているものを1つ選びなさい", opts:["慣性が大きいので機体の挙動は遅れ気味になる","ホバリングにおいては早めの操作は禁物である","一般的には小型機よりも騒音は大きい"], ans:1, exp:"大型機は慣性が大きいため、機体の動きが遅れます。安定したホバリングには、早めの修正操作が不可欠です。" },
+  { id:53, cat:"第三編", q:"マルチローター（回転翼航空機）の特徴に関する説明として誤っているものを1つ選びなさい", opts:["ローターの数が多いほど故障に対する耐性が向上する","高速回転で揚力を得るので風の影響を受けにくい","移動方向側のローター回転数を下げ、反対側を上げることで移動する"], ans:1, exp:"マルチローターは、その構造上風の影響を受けやすいのが大きな特徴であり、弱点でもあります。" },
+  { id:54, cat:"第三編", q:"夜間飛行に必要な装備に関する説明として正しいものを1つ選びなさい", opts:["姿勢や進行方向を視認するための灯火の装備が必要である","前方を明るく照らすためのヘッドライトの装備が求められる","灯火は視認性を高めるために点滅していなければならない"], ans:0, exp:"航空法が求める灯火は、道を照らすものではなく、操縦者が機体の姿勢と進行方向を把握するためのものです。" },
+  { id:55, cat:"第三編", q:"補助者を配置する場合の目視外飛行に必要な装備として誤っているものを1つ選びなさい", opts:["フェールセーフ機能が必要である","操縦装置で高度、速度、位置などを監視できる必要がある","第三者に危害を与えないことを証明した機能を必ず装備していなければならない"], ans:2, exp:"補助者を配置している場合、この証明機能（安全装置）の装備は必須条件ではありません。" },
+  { id:56, cat:"第三編", q:"航空機の姿勢に関する説明として正しいものを1つ選びなさい", opts:["「ヨウ」とは機首の左右の回転を表している","「ヨウ」とは機体の左右の傾きを表している","「ピッチ」とは機首の左右の回転を表している"], ans:0, exp:"ピッチは機首の上下、ロールは左右の傾き、ヨウは機首の左右の回転です。" },
+  { id:57, cat:"第三編", q:"揚力発生機構に関する説明として正しいものを1つ選びなさい", opts:["プロペラの回転により原動機に抗力が発生する","プロペラの回転により原動機に反トルクが発生する","マルチローターのプロペラは全て同じ方向に回転している"], ans:1, exp:"プロペラを回す際、その反作用で機体を逆方向に回そうとする力（反トルク）が生じます。マルチローターはこれを打ち消すために隣り合うプロペラの回転方向を逆にしています。" },
+  { id:58, cat:"第三編", q:"ペイロードに関する説明として誤っているものを1つ選びなさい", opts:["ペイロードの最大積載量が決められている","ペイロードとは機体重量と積載物の合計重量である","ペイロードによって飛行特性そのものが変化する"], ans:1, exp:"ペイロードとは、機体本体の重さを除いた最大積載量（荷物のみの重量）を指します。" },
+  { id:59, cat:"第三編", q:"センサーに関する説明として正しいものを1つ選びなさい", opts:["ジャイロセンサーは機体の高度を測定できる","気圧センサーは高度を測定するために使用される","地磁気センサーは位置と高度を知るために使用される"], ans:1, exp:"ジャイロセンサーは回転角速度、地磁気センサーは方位（向き）を測るためのものです。" },
+  { id:60, cat:"第三編", q:"モーターに関する説明として正しいものを1つ選びなさい", opts:["ブラシモーターはブラシレスモーターよりも長寿命である","ブラシモーターはブラシレスモーターよりも静音である","ブラシレスモーターは比較的にメンテナンスが容易である"], ans:2, exp:"ブラシレスモーターは接点（ブラシ）がないため、長寿命・静音であり、メンテナンス性にも優れています。" },
+  { id:61, cat:"第三編", q:"操縦操作に関する説明として正しいものを1つ選びなさい", opts:["エレベーターはピッチを変化させる","エルロンはヨウを変化させる","ラダーはロールを変化させる"], ans:0, exp:"エレベーターはピッチ（前後）、エルロンはロール（左右移動）、ラダーはヨウ（回転）を制御します。" },
+  { id:62, cat:"第三編", q:"リチウムポリマーバッテリーの取り扱いとして正しいものを1つ選びなさい", opts:["保管時は常に満充電の状態にしておくことが望ましい","端子が短絡すると発火する可能性がある","過放電はバッテリー寿命とは特に関係がない"], ans:1, exp:"短絡（ショート）は発火の危険があるため厳禁です。保管時は満充電ではなく適正電圧まで下げる必要があり、過放電・過充電は著しい劣化を招きます。" },
+  { id:63, cat:"第三編", q:"物件投下に関する説明として誤っているものを1つ選びなさい", opts:["補助者を配置しない場合の投下高度は1m以内である必要がある","ウィンチ機構で吊り下げる場合は重心位置変化に注意する","農薬散布は物件投下には該当しない"], ans:2, exp:"液体・固体を問わず、農薬散布も物件投下に該当します。補助者がいない場合の高度制限（1m以内）も重要です。" },
+  { id:64, cat:"第三編", q:"電波の特徴についての説明として誤っているものを1つ選びなさい", opts:["回折とは2つの異なる物質の中を進行する時に進行方向が変化することである","電力密度は進行距離の2乗に反比例する","電波は水中では大きく減衰する"], ans:0, exp:"異なる物質を通る際に方向が変わるのは屈折です。回折は、電波が障害物の背後に回り込む現象を指します。" },
+  { id:65, cat:"第三編", q:"マルチパスに関する説明として正しいものを1つ選びなさい", opts:["電波が確実に届くようにするための技術である","マルチパスは一時的な操縦不能を起こす可能性がある","全てのパスの電波が同時に機体に到達する"], ans:1, exp:"マルチパスとは、反射などにより複数の経路で電波が届くことです。到着時間にズレが生じるため、通信の混乱や操縦不能を招きます。" },
+  { id:66, cat:"第三編", q:"フレネルゾーンの説明として正しいものを1つ選びなさい", opts:["電力損失なく進行するために、障害物等がない状態を確保すべき領域である","地面が電力に関係することはない","形状は完全な球体である"], ans:0, exp:"フレネルゾーンは送信機と機体の間の楕円体の領域です。この中に地面が入ると影響を受けるため、送信機を高く保持することが有効です。" },
+  { id:67, cat:"第三編", q:"使用される電波の周波数帯についての説明として正しいものを1つ選びなさい", opts:["到達距離と周波数帯とは相関関係はない","169MHz帯は特に遠距離通信に使用される","主な周波数帯は2.4GHz、5.7GHz、920MHz、73MHz、169MHzである"], ans:2, exp:"周波数が高いほど減衰しやすく、距離が短くなります。169MHz帯は主に2.4GHz/5.7GHzのバックアップ用回線として利用されます。" },
+  { id:68, cat:"第三編", q:"地磁気センサーの特徴として正しいものを1つ選びなさい", opts:["鉄の構造物が近くにある場合、検出に影響がある可能性がある","高圧線は磁気の検出には影響を与えない","方位を常に正しく検出する"], ans:0, exp:"鉄骨や磁界を発生させる高圧線の近くでは、センサーが狂うため常に正しいとは限りません。" },
+  { id:69, cat:"第三編", q:"磁気キャリブレーションに関する説明として正しいものを1つ選びなさい", opts:["飛行中に常に行われている","高度の検出に問題が生じる","飛行場所によって地磁気の方向は異なる"], ans:2, exp:"地磁気は場所によって異なるため、場所を変えた際はキャリブレーションが必要です。方位のためのセンサーであり、高度には関係しません。" },
+  { id:70, cat:"第三編", q:"測位方式に関する説明として誤っているものを1つ選びなさい", opts:["GPSの単独測位の精度は数10mである","GNSSは最低6個の衛星からの距離を同時に測定する必要がある","RTKでは数cmから数mの精度を得ることができる"], ans:1, exp:"GNSSによる3次元測位には、最低4個の衛星が必要です。" },
+  { id:71, cat:"第三編", q:"測位精度に影響を与えるものに関する説明として誤っているものを1つ選びなさい", opts:["マルチパスは影響を与えない","環境に存在するノイズは影響を与える","衛星の時計の精度は影響を与える"], ans:0, exp:"マルチパス（反射波）は、GNSSの測位精度を低下させる大きな要因です。" },
+  { id:72, cat:"第三編", q:"リチウムポリマーバッテリーに関する説明として正しいものを1つ選びなさい", opts:["廃棄する場合、産業廃棄物とはならない","膨らみの原因は内部の金属が劣化変形しているためである","過充電によって内部に可燃性ガスが発生していることがある"], ans:2, exp:"業務で使用したものは産業廃棄物です。バッテリーの膨らみは、過充電等で発生した可燃性ガスが原因です。" },
+  { id:73, cat:"第三編", q:"運行時の点検に関する説明として誤っているものを1つ選びなさい", opts:["点検の全ては離陸前と着陸後に行われるものである","飛行前点検は飛行時間の長さに関わらず都度行うべきである","結果は飛行日誌に記録する"], ans:0, exp:"点検は、飛行前、飛行中、飛行後、異常発生時など、運用の全過程で行う必要があります。" },
+  { id:74, cat:"第三編", q:"国土交通省への飛行申請に関する説明として正しいものを1つ選びなさい", opts:["やむを得ない場合は飛行後でも構わない","飛行開始予定日の10開庁日前までに申請書を提出する必要がある","カテゴリー1飛行の場合も技能証明が必要である"], ans:1, exp:"申請は事後に行うことはできません。カテゴリー2の申請は原則として10開庁日前までに行う必要があります。" },
+  { id:75, cat:"第三編", q:"損害賠償能力に関する説明として誤っているものを1つ選びなさい", opts:["機体保険は対物保証である","損害賠償責任保険に加入する必要がある","保険への加入は義務ではない"], ans:0, exp:"機体保険は、飛行させる機体そのものの損害を補償するものです。対人・対物の賠償には、別途「損害賠償責任保険」への加入が必要です。" },
+  // 第四編
+  { id:76, cat:"第四編", q:"離着陸時に注意すべき事項の説明として誤っているものを1つ選びなさい", opts:["離陸直後、気流が地面付近で滞留することで揚力が増加する現象が起こりやすい","GNSSや気圧センサーは安定したホバリングに寄与している","降下時の吹きおろしが回転翼に吸い込まれて揚力を失う現象が地面効果である"], ans:2, exp:"選択肢Cは「ボルテックス・リング・ステート」の説明です。地面効果は、地面付近で気流が滞留し揚力が増加する現象を指します。" },
+  { id:77, cat:"第四編", q:"ヘリコプターの離着陸時に注意すべき事項の説明として正しいものを1つ選びなさい", opts:["砂の上ではダウンウォッシュによって視界が遮られる可能性がある","テールローターの作用により機体が上下に振動することがある","離陸時は常に急速に上昇すること"], ans:0, exp:"テールローターの作用では、機体が左右いずれかに傾く傾向があります。急激すぎる上昇はローター回転数の低下を招き不安定になります。" },
+  { id:78, cat:"第四編", q:"飛行機の離着陸時に注意すべき事項の説明として誤っているものを1つ選びなさい", opts:["離陸時の上昇角度は失速しないように設定する","着陸時は降下速度を下げること","離着陸の方向は失速を避けるために追い風を選ぶのが原則である"], ans:2, exp:"離着陸は向かい風で行うのが鉄則です。" },
+  { id:79, cat:"第四編", q:"手動操縦に関する説明として誤っているものを1つ選びなさい", opts:["センサーを一切使わず、スティック操作のみを行うことである","習熟度に応じて細かな操作ができる","正確な繰り返し飛行には向いていない"], ans:0, exp:"手動操縦であっても、通常は各種センサーの支援を受けながら操作します。" },
+  { id:80, cat:"第四編", q:"手動操縦におけるヒューマンエラーに関する説明として正しいものを1つ選びなさい", opts:["操縦者に対して機体の正面が向き合っている場合に発生しやすい","距離が離れてもリスクは変わらない","ヒューマンエラーは体調とは無関係である"], ans:0, exp:"機体と対面している状態（機首が自分を向いている）では、左右の操作が逆になるため「あべこべ」の操作ミスが起きやすくなります。" },
+  { id:81, cat:"第四編", q:"自動操縦に関する説明として誤っているものを1つ選びなさい", opts:["再現性の高い飛行を行うことができる","ウェイポイントは機体の速度を設定することはできない","地図情報が利用される"], ans:1, exp:"通常の自動操縦アプリでは、各地点（ウェイポイント）ごとに機体速度を個別に設定できます。" },
+  { id:82, cat:"第四編", q:"機体のフェールセーフ機能に関する説明として正しいものを1つ選びなさい", opts:["墜落した場合も機体損傷を最低限にする機能である","飛行の継続が難しい場合に機体を離陸地点に帰還させる機能などである","機能と仕様は航空法によって定められている"], ans:1, exp:"フェールセーフは、異常時に安全を確保するための機能（RTHなど）です。具体的な仕様は航空法ではなく機種ごとに異なります。" },
+  { id:83, cat:"第四編", q:"事故発生時に取るべき行動として誤っているものを1つ選びなさい", opts:["負傷者がいる場合は機体をホバリング状態にして、救護を最優先する","火災発生では消防に通報するなど危険防止措置を講じる","国土交通大臣に報告しなければならない"], ans:0, exp:"事故発生時は、二次災害を防ぐためにまず直ちに飛行を中止し、安全を確保した上で救護にあたる必要があります。" },
+  { id:84, cat:"第四編", q:"安全な運行のための意思決定体制に関して正しいものを1つ選びなさい", opts:["事前準備を徹底すればヒューマンエラーを完全になくすことは可能である","TEMはCRM実現の有効な手段である","ノンテクニカルスキルはCRMには含まれない"], ans:1, exp:"ヒューマンエラーは完全になくすことは不可能であるという前提に立つことが重要です。CRM（クルー・リソース・マネジメント）やTEMの考え方が必要です。" },
+  { id:85, cat:"第四編", q:"補助者に関する説明として正しいものを1つ選びなさい", opts:["無線機なしで会話できる位置に配置されなければならない","飛行準備や飛行経路の安全管理においても重要な役割を果たす","操縦者と同じ技能証明を取得していなければならない"], ans:1, exp:"補助者は、第三者の立入管理だけでなく、全行程の安全管理を担います。距離が離れる場合は無線機等の通信手段を用います。" },
+  { id:86, cat:"第四編", q:"安全に配慮した飛行に関する説明として誤っているものを1つを選びなさい", opts:["リスクによってハザードが生じる","被害を軽減する措置を講じることでリスクの低減を図る","リスク管理は全てのカテゴリーの飛行で求められる"], ans:0, exp:"順番が逆です。「ハザード（危険要因）によってリスクが生じる」のが正しい関係です。" },
+  { id:87, cat:"第四編", q:"安全確保に関する説明として正しいものを1つ選びなさい", opts:["緊急時に備えて一時的な着陸が可能なスペースを事前に確保しておく","立入管理措置は一律に30mの範囲で行う","ジオフェンスとは衝突回避センサーのことである"], ans:0, exp:"立入管理措置の範囲は、「高度と同じ数値」または「30m」のいずれか長い方を加えた範囲が目安となります。" },
+  { id:88, cat:"第四編", q:"飛行計画を立てる時の説明として誤っているものを1つ選びなさい", opts:["緊急着陸地点を確保しておくべきである","緊急用務区域に該当しないかを確認する必要がある","安全管理は必ずしも全ての工程において優先されるべきとは限らない"], ans:2, exp:"安全管理は、飛行計画の全工程において常に最優先されるべき事項です。" },
+  { id:89, cat:"第四編", q:"リスクに関する説明として正しいものを1つ選びなさい", opts:["リスクは被害の発生確率と被害の大きさによって計量される","機材の不具合はリスクであり、墜落というハザードに至る可能性がある","パラシュートの使用はハザードを軽減する"], ans:0, exp:"機材不具合はハザード、墜落がリスクです。パラシュートは「リスク（被害の大きさ）」を軽減する対策です。" },
+  { id:90, cat:"第四編", q:"目視範囲について正しいものを1つ選びなさい", opts:["霧によって一時的に見えなくても、近距離なら飛行継続できる","航空法は機体と周囲の状況を目視により常時監視することを求めている","風向についての注意は特に求められない"], ans:1, exp:"航空法第132条の86に基づき、常時監視が義務です。霧などで見えなくなった場合は直ちに中止しなければなりません。" },
+  { id:91, cat:"第四編", q:"気象・天候に関する説明として誤っているものを1つ選びなさい", opts:["標準大気圧は1013hPaである","天気図において風力は1から13までの数値で表す","冬型の典型は西高東低である"], ans:1, exp:"風力は0から12までの13段階で表されます。" },
+  { id:92, cat:"第四編", q:"前線に関する説明として正しいものを1つ選びなさい", opts:["寒冷前線では積乱雲が発生し、突風や雷を伴う強い雨が降ることがある","梅雨前線は閉塞前線の一種である","停滞前線は寒冷前線が温暖前線に追いついたものである"], ans:0, exp:"梅雨前線は停滞前線です。寒冷前線が温暖前線に追いついたものは閉塞前線です。" },
+  { id:93, cat:"第四編", q:"風速に関する説明として誤っているものを1つ選びなさい", opts:["平均風速とは観測時の前60分間における平均風速である","上空の方が強い風が吹いていると考えるべきである","最大風速とは平均風速の最大値である"], ans:0, exp:"平均風速は、観測直前の10分間の平均値を指します。" },
+  { id:94, cat:"第四編", q:"気象に関する説明として正しいものを1つ選びなさい", opts:["北風とは北に向かって吹く風である","夏の夜間は海上から陸上に風が吹く","雲は10種雲形と呼ばれる10種類の形がある"], ans:2, exp:"雲の種類は、巻雲、捲積雲、捲層雲、乱層雲、高層雲、高積雲、積乱雲、積雲、層雲、層積雲の10種です。夜間は陸の方が冷えるため、陸から海に向かって風が吹きます。" },
+  { id:95, cat:"第四編", q:"ダウンバーストに関する説明として誤っているものを1つ選びなさい", opts:["回転翼航空機による強い下向きの空気の流れが地表にぶつかる現象である","水平方向にドーナッツ状に渦を巻きながら四方に広がる","通常の観測網で探知され予報できるものではない"], ans:0, exp:"ダウンバーストは、ドローンの風ではなく、積乱雲などから発生する強力な下降気流による自然現象です。" },
+  { id:96, cat:"第四編", q:"ヘリコプターの特徴について正しいものを1つ選びなさい", opts:["前進させながらの上昇の方が、必要パワーを削減できる","ボルテックス・リング・ステートによって急上昇する可能性がある","オートローテーションは障害物回避機能である"], ans:0, exp:"VRS（ボルテックス・リング・ステート）が発生すると、揚力を失い急降下します。オートローテーションはエンジン停止時の軟着陸のための機構です。" },
+  { id:97, cat:"第四編", q:"マルチローターの運行の特徴に関する説明として誤っているものを1つ選びなさい", opts:["地面効果範囲内の飛行時間を短くするべきである","自動帰還時の高度は最高高度に設定しておく","補助者についても安全距離を確保する"], ans:1, exp:"自動帰還（RTH）高度は、障害物を回避できる安全な高さに設定すべきですが、最高高度である必要はありません。" },
+  { id:98, cat:"第四編", q:"夜間飛行における注意点に関する説明として正しいものを1つ選びなさい", opts:["原則として目視外飛行は実施しない","照明は着陸地点にだけ設ければ良い","夜間の周囲確認は日中と変わらない"], ans:0, exp:"夜間かつ目視外は極めてリスクが高いため、原則行いません。照明は、離着陸地点だけでなく、回避すべき障害物にも設置が必要です。" },
+  { id:99, cat:"第四編", q:"補助者を配置する日中の目視外飛行に関する説明として誤っているものを1つ選びなさい", opts:["補助者は双眼鏡を使用してはならない","機体の外の様子をカメラ等で監視できる必要がある","不具合発生時にはフェールセーフ機能が作動すること"], ans:0, exp:"補助者が双眼鏡を使用して安全確認を行うことは、むしろ推奨される有効な手段です。" },
+  { id:100, cat:"第四編", q:"補助者を配置しない日中の目視外飛行について誤っているものを1つ選びなさい", opts:["灯火や塗色の目的は操縦者からの機体認識である","飛行経路全体の航空機の状況が常に確認できること","地上で周辺の気象状況などを把握できること"], ans:0, exp:"補助者なしの目視外飛行における灯火や塗色の主な目的は、有人航空機からの視認性を高めることにあります。" }
+];
+
+// State
+let currentQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let answered = false;
+let userAnswers = [];
+let lastMode = 'all';
+let sessionWrongIds = []; // wrong question IDs from current modal
+
+// ===== STORAGE HELPERS =====
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('drone_history') || '[]'); } catch { return []; }
+}
+function saveHistory(h) { localStorage.setItem('drone_history', JSON.stringify(h)); }
+
+function getQStats() {
+  try { return JSON.parse(localStorage.getItem('drone_qstats') || '{}'); } catch { return {}; }
+}
+function saveQStats(s) { localStorage.setItem('drone_qstats', JSON.stringify(s)); }
+
+function getModeName(mode) {
+  const map = { all:'全問題(100問)', rand:'ランダム20問', cat1:'第一編', cat2:'第二編', cat3:'第三編', cat4:'第四編', weak:'苦手問題', custom:'選択問題' };
+  return map[mode] || mode;
+}
+
+// ===== LOAD STATS FOR HOME =====
+const BEST_MODES = [
+  { key: 'all',  label: '全問題\n(100問)' },
+  { key: 'cat1', label: '第一編' },
+  { key: 'cat2', label: '第二編' },
+  { key: 'cat3', label: '第三編' },
+  { key: 'cat4', label: '第四編' },
+  { key: 'rand', label: 'ランダム\n20問' },
+];
+
+function getBestScores() {
+  try { return JSON.parse(localStorage.getItem('drone_best_scores') || '{}'); } catch { return {}; }
+}
+function saveBestScores(s) { localStorage.setItem('drone_best_scores', JSON.stringify(s)); }
+
+function loadStats() {
+  const hist = getHistory();
+  document.getElementById('attemptCount').textContent = hist.length;
+  renderBestScoresGrid();
+  renderWeakPanel();
+}
+
+function renderBestScoresGrid() {
+  const bests = getBestScores();
+  const grid = document.getElementById('bestScoresGrid');
+  grid.innerHTML = '';
+
+  BEST_MODES.forEach(m => {
+    const data = bests[m.key];
+    const card = document.createElement('div');
+    card.className = 'best-score-card' + (data ? ' has-score' : '');
+
+    let color = 'var(--text-dim)';
+    if (data) {
+      color = data.pct >= 80 ? 'var(--correct)' : data.pct >= 60 ? 'var(--accent)' : 'var(--incorrect)';
+    }
+
+    card.innerHTML = `
+      <div class="best-score-val ${data ? '' : 'no-data'}" style="${data ? 'color:' + color : ''}">
+        ${data ? data.pct + '%' : '—'}
+      </div>
+      <div class="best-score-mode">${m.label.replace('\n', '<br>')}</div>
+      ${data ? `<div class="best-score-attempts">${data.attempts}回挑戦</div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderWeakPanel() {
+  const qstats = getQStats();
+  const weakIds = getWeakQuestionIds(qstats, 5);
+  const panel = document.getElementById('weakPanel');
+  if (weakIds.length === 0) { panel.style.display = 'none'; return; }
+
+  panel.style.display = 'block';
+  document.getElementById('weakPanelSub').textContent = `過去の挑戦で間違えた問題が ${weakIds.length} 問あります。集中的に復習しましょう。`;
+
+  const pills = document.getElementById('weakPills');
+  pills.innerHTML = '';
+  weakIds.slice(0, 15).forEach(id => {
+    const el = document.createElement('span');
+    el.className = 'weak-pill-item';
+    el.textContent = `問${id}`;
+    pills.appendChild(el);
+  });
+  if (weakIds.length > 15) {
+    const more = document.createElement('span');
+    more.className = 'weak-pill-item';
+    more.style.opacity = '0.6';
+    more.textContent = `+${weakIds.length - 15}問`;
+    pills.appendChild(more);
+  }
+}
+
+function getWeakQuestionIds(qstats, minAttempts) {
+  // Questions with accuracy < 70% and at least minAttempts attempts
+  return Object.entries(qstats)
+    .filter(([id, s]) => s.attempts >= minAttempts && (s.correct / s.attempts) < 0.7)
+    .sort((a, b) => (a[1].correct / a[1].attempts) - (b[1].correct / b[1].attempts))
+    .map(([id]) => parseInt(id));
+}
+
+function getAllWeakIds(qstats) {
+  // Any question answered wrong at least once
+  return Object.entries(qstats)
+    .filter(([id, s]) => s.wrong > 0)
+    .sort((a, b) => {
+      const ra = a[1].correct / (a[1].attempts || 1);
+      const rb = b[1].correct / (b[1].attempts || 1);
+      return ra - rb;
+    })
+    .map(([id]) => parseInt(id));
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ===== QUIZ LOGIC =====
+function startQuiz(mode, specificIds) {
+  lastMode = mode;
+  let pool;
+
+  if (specificIds) {
+    pool = QUESTIONS.filter(q => specificIds.includes(q.id));
+  } else if (mode === 'all') {
+    pool = [...QUESTIONS];
+  } else if (mode === 'rand') {
+    pool = shuffle(QUESTIONS).slice(0, 20);
+  } else if (mode === 'cat1') {
+    pool = QUESTIONS.filter(q => q.cat === '第一編');
+  } else if (mode === 'cat2') {
+    pool = QUESTIONS.filter(q => q.cat === '第二編');
+  } else if (mode === 'cat3') {
+    pool = QUESTIONS.filter(q => q.cat === '第三編');
+  } else if (mode === 'cat4') {
+    pool = QUESTIONS.filter(q => q.cat === '第四編');
+  } else if (mode === 'weak') {
+    const qstats = getQStats();
+    const weakIds = getAllWeakIds(qstats);
+    pool = QUESTIONS.filter(q => weakIds.includes(q.id));
+    if (pool.length === 0) {
+      showToast('苦手問題のデータがありません。まず通常モードで挑戦してください。');
+      return;
+    }
+  }
+
+  currentQuestions = shuffle(pool);
+  currentIndex = 0;
+  score = 0;
+  userAnswers = new Array(currentQuestions.length).fill(null);
+  answered = false;
+
+  show('quizScreen');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQuestions[currentIndex];
+  const total = currentQuestions.length;
+
+  document.getElementById('qCounter').textContent = `Q${currentIndex + 1} / ${total}`;
+  document.getElementById('progressFill').style.width = ((currentIndex / total) * 100) + '%';
+  document.getElementById('scoreBadge').textContent = `✓ ${score}`;
+  document.getElementById('categoryTag').textContent = q.cat;
+  document.getElementById('questionText').textContent = `問${q.id}｜${q.q}`;
+  document.getElementById('explanationBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  answered = false;
+
+  const letters = ['A', 'B', 'C'];
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i, btn);
+    container.appendChild(btn);
+  });
+
+  const card = document.getElementById('questionCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+}
+
+function selectAnswer(idx, btn) {
+  if (answered) return;
+  answered = true;
+
+  const q = currentQuestions[currentIndex];
+  userAnswers[currentIndex] = idx;
+  const isCorrect = idx === q.ans;
+  if (isCorrect) score++;
+
+  // Update per-question stats
+  const qstats = getQStats();
+  if (!qstats[q.id]) qstats[q.id] = { attempts: 0, correct: 0, wrong: 0 };
+  qstats[q.id].attempts++;
+  if (isCorrect) qstats[q.id].correct++;
+  else qstats[q.id].wrong++;
+  saveQStats(qstats);
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === idx && !isCorrect) b.classList.add('incorrect');
+  });
+
+  const expBox = document.getElementById('explanationBox');
+  expBox.style.display = 'block';
+  expBox.innerHTML = `
+    <div class="result-indicator ${isCorrect ? 'ok' : 'ng'}">
+      ${isCorrect ? '✅ 正解！' : '❌ 不正解'}
+    </div>
+    <strong>解説：</strong>${q.exp}
+  `;
+
+  document.getElementById('scoreBadge').textContent = `✓ ${score}`;
+
+  if (currentIndex < currentQuestions.length - 1) {
+    document.getElementById('nextBtn').style.display = 'inline-flex';
+    document.getElementById('nextBtn').textContent = '次の問題 →';
+  } else {
+    document.getElementById('nextBtn').style.display = 'inline-flex';
+    document.getElementById('nextBtn').textContent = '結果を見る 📊';
+  }
+}
+
+function nextQuestion() {
+  if (currentIndex < currentQuestions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  show('resultScreen');
+  const total = currentQuestions.length;
+  const pct = Math.round((score / total) * 100);
+
+  // Save to history
+  const wrongIds = currentQuestions
+    .filter((q, i) => userAnswers[i] !== q.ans)
+    .map(q => q.id);
+
+  const hist = getHistory();
+  hist.unshift({
+    id: Date.now(),
+    date: new Date().toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' }),
+    mode: lastMode,
+    modeName: getModeName(lastMode),
+    total,
+    score,
+    pct,
+    wrongIds,
+    questionIds: currentQuestions.map(q => q.id)
+  });
+  if (hist.length > 50) hist.pop();
+  saveHistory(hist);
+
+  // Update per-mode best score
+  const bests = getBestScores();
+  const modeKey = ['all','cat1','cat2','cat3','cat4','rand'].includes(lastMode) ? lastMode : null;
+  if (modeKey) {
+    if (!bests[modeKey]) bests[modeKey] = { pct: 0, attempts: 0 };
+    bests[modeKey].attempts++;
+    if (pct > bests[modeKey].pct) bests[modeKey].pct = pct;
+    saveBestScores(bests);
+  }
+
+  loadStats();
+
+  document.getElementById('resCorrect').textContent = score;
+  document.getElementById('resIncorrect').textContent = total - score;
+  document.getElementById('resTotal').textContent = total;
+
+  const circ = document.getElementById('resultCircle');
+  const circumference = 502;
+  const offset = circumference - (pct / 100) * circumference;
+
+  circ.style.stroke = pct >= 80 ? 'var(--correct)' : pct >= 60 ? 'var(--accent)' : 'var(--incorrect)';
+  setTimeout(() => { circ.style.strokeDashoffset = offset; }, 100);
+
+  let anim = 0;
+  const step = () => {
+    if (anim < pct) {
+      anim++;
+      document.getElementById('resultPct').textContent = anim + '%';
+      setTimeout(step, 20);
+    }
+  };
+  step();
+
+  let grade, sub, color;
+  if (pct >= 90) { grade = '🏆 優秀！'; sub = '素晴らしい成績です！合格圏内です。'; color = 'var(--correct)'; }
+  else if (pct >= 70) { grade = '✈️ 合格圏内'; sub = '良好な成績です。苦手分野を復習しましょう。'; color = 'var(--accent)'; }
+  else if (pct >= 50) { grade = '📚 もう少し'; sub = '基礎を固めて再挑戦しましょう。'; color = 'var(--warn)'; }
+  else { grade = '🔄 要復習'; sub = '各編の解説をしっかり確認しましょう。'; color = 'var(--incorrect)'; }
+
+  const gradeEl = document.getElementById('gradeText');
+  gradeEl.style.color = color;
+  gradeEl.textContent = grade;
+  document.getElementById('gradeSub').textContent = sub;
+}
+
+function showReview() {
+  show('reviewScreen');
+  const content = document.getElementById('reviewContent');
+  content.innerHTML = '';
+
+  currentQuestions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    const isCorrect = ua === q.ans;
+    const letters = ['A', 'B', 'C'];
+
+    const card = document.createElement('div');
+    card.className = `review-card ${isCorrect ? 'right' : 'wrong'}`;
+    card.innerHTML = `
+      <div class="review-q-num">${q.cat} / 問${q.id}</div>
+      <div class="review-q-text">${q.q}</div>
+      <div class="review-answers">
+        ${!isCorrect ? `<div class="review-your-answer">あなたの答え：${ua !== null ? letters[ua] + '. ' + q.opts[ua] : '未回答'}</div>` : ''}
+        <div class="review-correct-answer">✅ 正解：${letters[q.ans]}. ${q.opts[q.ans]}</div>
+      </div>
+      <div class="review-explanation">${q.exp}</div>
+    `;
+    content.appendChild(card);
+  });
+}
+
+// ===== HISTORY SCREEN =====
+function showHistory() {
+  show('historyScreen');
+  renderHistoryList();
+  renderWeakAnalysis();
+}
+
+function switchHistoryTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('historyTabList').classList.toggle('active', tab === 'list');
+  document.getElementById('historyTabWeak').classList.toggle('active', tab === 'weak');
+}
+
+function renderHistoryList() {
+  const hist = getHistory();
+  const container = document.getElementById('historyList');
+
+  if (hist.length === 0) {
+    container.innerHTML = `<div class="history-empty">📭 まだ挑戦履歴がありません<br>クイズに挑戦すると<br>ここに記録されます</div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  hist.forEach(h => {
+    const pctColor = h.pct >= 80 ? 'var(--correct)' : h.pct >= 60 ? 'var(--accent)' : 'var(--incorrect)';
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    card.onclick = () => openHistoryDetail(h);
+
+    const pillsHtml = h.wrongIds.slice(0, 12).map(id =>
+      `<span class="wrong-pill">問${id}</span>`
+    ).join('');
+    const morePills = h.wrongIds.length > 12 ? `<span class="wrong-pill more">+${h.wrongIds.length - 12}</span>` : '';
+
+    card.innerHTML = `
+      <div class="history-card-top">
+        <div>
+          <div class="history-date">${h.date}</div>
+        </div>
+        <div class="history-pct" style="color:${pctColor}">${h.pct}%</div>
+      </div>
+      <div class="history-meta">
+        <span>📚 ${h.modeName}</span>
+        <span>✅ ${h.score}/${h.total}問正解</span>
+        ${h.wrongIds.length > 0 ? `<span>❌ ${h.wrongIds.length}問ミス</span>` : '<span>🎉 全問正解</span>'}
+      </div>
+      ${h.wrongIds.length > 0 ? `<div class="history-wrong-pills">${pillsHtml}${morePills}</div>` : ''}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderWeakAnalysis() {
+  const qstats = getQStats();
+  const container = document.getElementById('weakAnalysis');
+
+  const attempted = Object.keys(qstats);
+  if (attempted.length === 0) {
+    container.innerHTML = `<div class="history-empty">📊 問題ごとの分析は<br>クイズに挑戦すると<br>表示されます</div>`;
+    return;
+  }
+
+  const weakIds = getAllWeakIds(qstats);
+  const masterIds = Object.entries(qstats)
+    .filter(([id, s]) => s.attempts >= 3 && s.correct === s.attempts)
+    .map(([id]) => parseInt(id));
+
+  container.innerHTML = '';
+
+  // Summary
+  const summary = document.createElement('div');
+  summary.className = 'stat-card';
+  summary.style.cssText = 'margin-bottom:16px;';
+  summary.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+      <div><div class="stat-num" style="font-size:24px">${attempted.length}</div><div class="stat-label">挑戦済み問題</div></div>
+      <div><div class="stat-num" style="font-size:24px;color:var(--incorrect)">${weakIds.length}</div><div class="stat-label">苦手問題</div></div>
+      <div><div class="stat-num" style="font-size:24px;color:var(--correct)">${masterIds.length}</div><div class="stat-label">完璧な問題</div></div>
+    </div>
+  `;
+  container.appendChild(summary);
+
+  if (weakIds.length > 0) {
+    const weakSection = document.createElement('div');
+    weakSection.style.marginBottom = '16px';
+    weakSection.innerHTML = `<div class="section-label" style="margin-bottom:10px">🔥 正答率の低い問題</div>`;
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
+
+    weakIds.slice(0, 20).forEach(id => {
+      const s = qstats[id];
+      const pct = Math.round((s.correct / s.attempts) * 100);
+      const q = QUESTIONS.find(q => q.id === id);
+      const item = document.createElement('div');
+      item.style.cssText = 'background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:12px 14px;';
+      item.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-family:Space Mono,monospace;font-size:11px;color:var(--text-dim)">問${id} / ${q ? q.cat : ''}</span>
+          <span style="font-family:Space Mono,monospace;font-size:13px;color:${pct < 50 ? 'var(--incorrect)' : 'var(--warn)'};font-weight:700">${pct}%</span>
+        </div>
+        <div style="font-size:12px;line-height:1.5;color:var(--text-dim);margin-bottom:8px">${q ? q.q.slice(0, 60) + (q.q.length > 60 ? '…' : '') : ''}</div>
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--text-dim);margin-bottom:6px">
+          <span>${s.attempts}回挑戦</span>
+          <span style="color:var(--correct)">✓ ${s.correct}回正解</span>
+          <span style="color:var(--incorrect)">✗ ${s.wrong}回不正解</span>
+        </div>
+        <div class="accuracy-bar"><div class="accuracy-fill" style="width:${pct}%;background:${pct < 50 ? 'var(--incorrect)' : 'var(--warn)'}"></div></div>
+      `;
+      list.appendChild(item);
+    });
+
+    weakSection.appendChild(list);
+    container.appendChild(weakSection);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary';
+    btn.style.width = '100%';
+    btn.textContent = '💪 苦手問題を集中練習';
+    btn.onclick = () => startQuiz('weak');
+    container.appendChild(btn);
+  } else {
+    const ok = document.createElement('div');
+    ok.className = 'history-empty';
+    ok.innerHTML = '🎉 現時点で苦手問題はありません！<br>引き続き練習を続けましょう。';
+    container.appendChild(ok);
+  }
+}
+
+function openHistoryDetail(h) {
+  sessionWrongIds = h.wrongIds;
+  const modal = document.getElementById('historyDetailModal');
+  modal.style.display = 'flex';
+
+  document.getElementById('modalTitle').textContent = `${h.date} — ${h.modeName}`;
+
+  const allQs = QUESTIONS.filter(q => h.questionIds.includes(q.id));
+  const letters = ['A', 'B', 'C'];
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;text-align:center">
+      <div style="background:var(--card);border-radius:8px;padding:12px">
+        <div style="font-family:Space Mono,monospace;font-size:22px;font-weight:700;color:${h.pct >= 80 ? 'var(--correct)' : h.pct >= 60 ? 'var(--accent)' : 'var(--incorrect)'}">${h.pct}%</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">正解率</div>
+      </div>
+      <div style="background:var(--card);border-radius:8px;padding:12px">
+        <div style="font-family:Space Mono,monospace;font-size:22px;font-weight:700;color:var(--correct)">${h.score}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">正解</div>
+      </div>
+      <div style="background:var(--card);border-radius:8px;padding:12px">
+        <div style="font-family:Space Mono,monospace;font-size:22px;font-weight:700;color:var(--incorrect)">${h.wrongIds.length}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">不正解</div>
+      </div>
+    </div>
+  `;
+
+  if (h.wrongIds.length > 0) {
+    html += `<div style="font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;font-family:Space Mono,monospace;margin-bottom:10px">❌ 間違えた問題</div>`;
+    html += `<div class="detail-q-list">`;
+    h.wrongIds.forEach(id => {
+      const q = QUESTIONS.find(q => q.id === id);
+      if (!q) return;
+      html += `
+        <div class="detail-q-item wrong-item">
+          <span class="detail-q-icon">❌</span>
+          <div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:3px">問${q.id} / ${q.cat}</div>
+            <div style="font-size:12px;line-height:1.5">${q.q.slice(0, 80)}${q.q.length > 80 ? '…' : ''}</div>
+            <div style="font-size:11px;color:var(--correct);margin-top:4px">✅ 正解：${letters[q.ans]}. ${q.opts[q.ans].slice(0, 40)}${q.opts[q.ans].length > 40 ? '…' : ''}</div>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div style="text-align:center;color:var(--correct);padding:20px;font-size:14px">🎉 全問正解！</div>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = html;
+
+  const retryBtn = document.getElementById('modalRetryBtn');
+  if (h.wrongIds.length > 0) {
+    retryBtn.style.display = 'block';
+    retryBtn.textContent = `この回の間違い ${h.wrongIds.length} 問を復習する`;
+    retryBtn.onclick = () => {
+      closeDetailModal();
+      startQuiz('custom', h.wrongIds);
+    };
+  } else {
+    retryBtn.style.display = 'none';
+  }
+}
+
+function closeDetailModal() {
+  document.getElementById('historyDetailModal').style.display = 'none';
+}
+
+function closeModal(e) {
+  if (e.target.id === 'historyDetailModal') closeDetailModal();
+}
+
+function restartQuiz() {
+  startQuiz(lastMode);
+}
+
+function exitQuiz() {
+  show('startScreen');
+}
+
+function goHome() {
+  show('startScreen');
+}
+
+function show(id) {
+  ['startScreen','quizScreen','resultScreen','reviewScreen','historyScreen'].forEach(s => {
+    const el = document.getElementById(s);
+    el.style.display = 'none';
+    el.style.flexDirection = '';
+  });
+  const target = document.getElementById(id);
+  target.style.display = 'flex';
+  target.style.flexDirection = 'column';
+  window.scrollTo(0, 0);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Init
+loadStats();
+show('startScreen');
+
+// ===== PWA: Service Worker 登録 =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+
+// ===== PWA: ホーム画面追加バナー =====
+let deferredPrompt = null;
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+const installDismiss = document.getElementById('installDismiss');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // 初回訪問から3秒後に表示（すぐ出ると邪魔なため）
+  setTimeout(() => {
+    if (installBanner) installBanner.style.transform = 'translateY(0)';
+  }, 3000);
+});
+
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (installBanner) installBanner.style.transform = 'translateY(120px)';
+  });
+}
+
+if (installDismiss) {
+  installDismiss.addEventListener('click', () => {
+    if (installBanner) installBanner.style.transform = 'translateY(120px)';
+  });
+}
+
+// インストール済み（standalone）の場合はバナーを非表示
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  if (installBanner) installBanner.style.display = 'none';
+}
+</script>
+</body>
+</html>
